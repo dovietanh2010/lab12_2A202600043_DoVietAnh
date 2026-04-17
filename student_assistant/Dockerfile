@@ -16,6 +16,8 @@ WORKDIR /app
 COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
+# Phải sửa trong file Dockerfile thành:
+COPY student_assistant/requirements.txt .
 COPY student_assistant/backend ./backend
 
 EXPOSE 8000
