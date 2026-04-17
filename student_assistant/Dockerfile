@@ -2,18 +2,16 @@
 FROM node:18-alpine AS frontend-builder
 WORKDIR /build-frontend
 
-# Copy package files từ thư mục frontend
-COPY frontend/package*.json ./
+# Copy từ đường dẫn đầy đủ tính từ gốc Repository
+COPY student_assistant/frontend/package*.json ./
 RUN npm install
-
-# Copy toàn bộ thư mục frontend vào container
-COPY frontend ./
+COPY student_assistant/frontend ./
 RUN npm run build
 
 # Stage 2: Build Backend Wheels
 FROM python:3.11-slim AS backend-builder
 WORKDIR /build-backend
-COPY requirements.txt .
+COPY student_assistant/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps -r requirements.txt -w /wheels
 
 # Stage 3: Runtime
@@ -28,14 +26,10 @@ WORKDIR /app
 COPY --from=backend-builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
-# Copy code Backend
-# Phải sửa trong file Dockerfile thành:
-COPY student_assistant/requirements.txt .
+# Copy code Backend từ thư mục gốc
 COPY student_assistant/backend ./backend
 
-
-# Copy Frontend đã build vào đúng thư mục tĩnh của Backend
-COPY student_assistant/frontend ./frontend
+# Copy Frontend đã build vào thư mục tĩnh của Backend
 COPY --from=frontend-builder /build-frontend/out ./backend/static
 
 EXPOSE 8000
