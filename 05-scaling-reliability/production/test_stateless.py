@@ -63,7 +63,10 @@ for i, question in enumerate(questions, 1):
 
     print(f"Request {i}: [{instance}]")
     print(f"  Q: {question}")
-    print(f"  A: {result['answer'][:80]}...")
+    try:
+        print(f"  A: {result['answer'][:80]}...")
+    except UnicodeEncodeError:
+        print(f"  A: [Unicode content received successfully]")
     print()
 
 print("-" * 60)

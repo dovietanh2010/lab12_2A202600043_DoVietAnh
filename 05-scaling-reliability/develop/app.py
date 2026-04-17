@@ -94,6 +94,7 @@ def root():
 async def ask_agent(question: str):
     if not _is_ready:
         raise HTTPException(503, "Agent not ready")
+    time.sleep(10)
     return {"answer": ask(question)}
 
 
@@ -172,19 +173,42 @@ def ready():
 # GRACEFUL SHUTDOWN
 # ──────────────────────────────────────────────────────────
 
-def handle_sigterm(signum, frame):
+import signal
+import sys
+
+
+def shutdown_handler(signum, frame):
     """
-    SIGTERM là signal platform gửi khi muốn dừng container.
-    Khác với SIGKILL (không thể catch được).
-
-    uvicorn bắt SIGTERM tự động và gọi lifespan shutdown.
-    Hàm này để log thêm thông tin.
+    Handle SIGTERM from container orchestrator
+    1. Stop accepting new requests
+    2. Finish current requests
+    3. Close connections
+    4. Exit
     """
-    logger.info(f"Received signal {signum} — uvicorn will handle graceful shutdown")
+    global _is_ready
+    logger.info(f"Received signal {signum}. Starting manual graceful shutdown...")
+    
+    # 1. Stop accepting new requests
+    _is_ready = False
+    logger.info("Step 1: Stopped accepting new requests (Readiness = False)")
+    
+    # 2. Finish current requests
+    logger.info(f"Step 2: Waiting for {_in_flight_requests} in-flight requests to complete...")
+    while _in_flight_requests > 0:
+        time.sleep(1)
+        logger.info(f"Still waiting for {_in_flight_requests} requests...")
+        
+    # 3. Close connections (Mock)
+    logger.info("Step 3: Closing database and redis connections...")
+    time.sleep(0.5)
+    
+    # 4. Exit
+    logger.info("Step 4: Shutdown complete. Exiting.")
+    sys.exit(0)
 
 
-signal.signal(signal.SIGTERM, handle_sigterm)
-signal.signal(signal.SIGINT, handle_sigterm)
+signal.signal(signal.SIGINT, shutdown_handler)
+signal.signal(signal.SIGTERM, shutdown_handler)
 
 
 if __name__ == "__main__":
