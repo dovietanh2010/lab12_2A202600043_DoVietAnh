@@ -25,7 +25,8 @@ COPY --from=backend-builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
 # Copy backend code
-COPY backend ./backend
+COPY student_assistant/requirements.txt .
+COPY student_assistant/backend ./backend
 
 # Copy built frontend to backend/static
 COPY --from=frontend-builder /build-frontend/out ./backend/static
