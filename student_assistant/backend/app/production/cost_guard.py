@@ -30,5 +30,5 @@ def check_budget(user_id: str) -> None:
     if float(new_total) > float(config.MONTHLY_BUDGET_USD):
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="VÆ°á»£t ngÃ¢n sÃ¡ch thÃ¡ng, vui lÃ²ng nÃ¢ng háº¡n má»©c hoáº·c thá»­ láº¡i thÃ¡ng sau",
+            detail="Vượt ngân sách tháng, vui lòng nâng hạn mức hoặc thử lại tháng sau",
         )

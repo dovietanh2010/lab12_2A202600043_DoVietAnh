@@ -29,5 +29,5 @@ def check_rate_limit(user_id: str) -> None:
     if int(count) > config.RATE_LIMIT_PER_MINUTE:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="QuÃ¡ nhiá»u yÃªu cáº§u, vui lÃ²ng thá»­ láº¡i sau",
+            detail="Quá nhiều yêu cầu, vui lòng thử lại sau",
         )
