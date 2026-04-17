@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 COPY student_assistant/requirements.txt .
 COPY student_assistant/backend ./backend
 
+
 EXPOSE 8000
 WORKDIR /app/backend
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
