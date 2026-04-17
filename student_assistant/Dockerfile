@@ -16,7 +16,7 @@ WORKDIR /app
 COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
-COPY backend ./backend
+COPY student_assistant/backend ./backend
 
 EXPOSE 8000
 WORKDIR /app/backend
