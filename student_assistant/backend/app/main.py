@@ -127,7 +127,6 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 @app.post("/api/auth/login", response_model=LoginResponse)
 def login(
     request: LoginRequest,
-    _api_key: None = Depends(verify_api_key),
 ):
     user = authenticate(request.username, request.password)
     if not user:
