@@ -175,6 +175,7 @@ Trong phần này, tôi đã tích hợp các yêu cầu production (Docker mult
    - Hệ thống logging cấu trúc JSON giúp dễ dàng theo dõi lỗi và hiệu năng trên các dashboard quản lý tập trung.
 
 ### Deployment Information
+- Toàn bộ các file xử lý nằm trong thư mục `student_assistant/backend/app/production`.
 - **Public URL**: https://lab12-2a202600043-dovietanh.onrender.com
 - **Platform**: Render
 - **Snapshot**: pics/deploy_part6.png và pics/log_deploy_part6.png
