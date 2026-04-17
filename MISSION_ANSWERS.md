@@ -31,19 +31,6 @@
     *   `CMD`: Thiết lập lệnh mặc định, có thể dễ dàng bị ghi đè khi chạy lệnh `docker run`.
     *   `ENTRYPOINT`: Thiết lập lệnh chính sẽ chạy, khó bị ghi đè hơn và thường được dùng để biến container thành một file thực thi. Ở đây dùng `CMD` để linh hoạt hơn.
 
-### Exercise 3.1: Cloud Deployment (Railway & Render)
-- **Public URL (Railway)**: https://lab12part3-production.up.railway.app
-- **Public URL (Render)**: [Điền URL Render của bạn vào đây]
-- **Platform**: Render (via Blueprint) & Railway (via CLI)
-- **Cách thực hiện**:
-    *   **Railway**: Dùng Railway CLI (`railway up`) để deploy nhanh từ terminal.
-    *   **Render**: Dùng file `render.yaml` (Blueprint) kết nối với GitHub để tự động hóa hạ tầng (IaC).
-
-### Exercise 3.2: Compare config files
-- **`railway.toml` vs `render.yaml`**:
-    *   **`railway.toml`**: Đơn giản, tập trung vào lệnh chạy (`startCommand`) và cách build. Phù hợp cho các ứng dụng nhỏ, cần deploy nhanh.
-    *   **`render.yaml`**: Mạnh mẽ hơn, cho phép định nghĩa nhiều dịch vụ (Web, Redis, DB) cùng lúc. Đây là mô hình **Infrastructure as Code**, giúp quản lý toàn bộ hệ thống chuyên nghiệp và dễ tái sử dụng.
-
 ### Exercise 2.3: Image size comparison
 - Develop: 1.66 GB
 - Production: ~165 MB
@@ -57,5 +44,20 @@
 1. **Tại sao COPY requirements.txt trước?**: Để tận dụng cache. Nếu code thay đổi nhưng thư viện không đổi, Docker sẽ không phải cài lại thư viện, giúp tiết kiệm thời gian build.
 2. **.dockerignore nên chứa những gì?**: Các file không cần thiết như `__pycache__`, `.git`, `venv`, và đặc biệt là file bí mật `.env`. Việc này giúp image nhẹ hơn và an toàn hơn.
 3. **Làm sao mount volume?**: Sử dụng flag `-v` khi chạy lệnh `docker run` hoặc khai báo `volumes` trong file `docker-compose.yml`.
+
+
+
+### Exercise 3.1: Cloud Deployment (Railway & Render)
+- **Public URL (Railway)**: https://lab12part3-production.up.railway.app
+- **Public URL (Render)**: [Điền URL Render của bạn vào đây]
+- **Platform**: Render (via Blueprint) & Railway (via CLI)
+- **Cách thực hiện**:
+    *   **Railway**: Dùng Railway CLI (`railway up`) để deploy nhanh từ terminal.
+    *   **Render**: Dùng file `render.yaml` (Blueprint) kết nối với GitHub để tự động hóa hạ tầng (IaC).
+
+### Exercise 3.2: Compare config files
+- **`railway.toml` vs `render.yaml`**:
+    *   **`railway.toml`**: Đơn giản, tập trung vào lệnh chạy (`startCommand`) và cách build. Phù hợp cho các ứng dụng nhỏ, cần deploy nhanh.
+    *   **`render.yaml`**: Mạnh mẽ hơn, cho phép định nghĩa nhiều dịch vụ (Web, Redis, DB) cùng lúc. Đây là mô hình **Infrastructure as Code**, giúp quản lý toàn bộ hệ thống chuyên nghiệp và dễ tái sử dụng.
 
 ---
