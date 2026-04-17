@@ -1,9 +1,13 @@
 # Stage 1: Build Frontend (Next.js)
 FROM node:18-alpine AS frontend-builder
 WORKDIR /build-frontend
+
+# Copy package files từ thư mục frontend
 COPY frontend/package*.json ./
 RUN npm install
-COPY frontend/ ./
+
+# Copy toàn bộ thư mục frontend vào container
+COPY frontend ./
 RUN npm run build
 
 # Stage 2: Build Backend Wheels
@@ -20,15 +24,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install dependencies from wheels
+# Install dependencies từ wheels
 COPY --from=backend-builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
-# Copy backend code
-COPY student_assistant/requirements.txt .
-COPY student_assistant/backend ./backend
+# Copy code Backend
+COPY backend ./backend
 
-# Copy built frontend to backend/static
+# Copy Frontend đã build vào đúng thư mục tĩnh của Backend
 COPY --from=frontend-builder /build-frontend/out ./backend/static
 
 EXPOSE 8000
