@@ -1,11 +1,18 @@
-# Stage 1: builder
-FROM python:3.11-slim AS builder
+# Stage 1: Build Frontend (Next.js)
+FROM node:18-alpine AS frontend-builder
+WORKDIR /build-frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
 
-WORKDIR /build
+# Stage 2: Build Backend Wheels
+FROM python:3.11-slim AS backend-builder
+WORKDIR /build-backend
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps -r requirements.txt -w /wheels
 
-# Stage 2: runtime
+# Stage 3: Runtime
 FROM python:3.11-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -13,13 +20,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY --from=builder /wheels /wheels
+# Install dependencies from wheels
+COPY --from=backend-builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
-# Phải sửa trong file Dockerfile thành:
-COPY student_assistant/requirements.txt .
-COPY student_assistant/backend ./backend
+# Copy backend code
+COPY backend ./backend
 
+# Copy built frontend to backend/static
+COPY --from=frontend-builder /build-frontend/out ./backend/static
 
 EXPOSE 8000
 WORKDIR /app/backend

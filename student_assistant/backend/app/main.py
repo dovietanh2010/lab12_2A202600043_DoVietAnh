@@ -7,6 +7,7 @@ import logging
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.assistant_graph import run_assistant_turn
@@ -123,7 +124,7 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
-@app.post("/auth/login", response_model=LoginResponse)
+@app.post("/api/auth/login", response_model=LoginResponse)
 def login(
     request: LoginRequest,
     _api_key: None = Depends(verify_api_key),
@@ -134,12 +135,12 @@ def login(
     return {**user, "token": create_session(user)}
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health():
     return {"status": "ok"}
 
 
-@app.get("/ready")
+@app.get("/api/ready")
 async def ready():
     try:
         get_redis().ping()
@@ -148,7 +149,7 @@ async def ready():
     return {"status": "ready"}
 
 
-@app.get("/students", response_model=list[StudentInfo])
+@app.get("/api/students", response_model=list[StudentInfo])
 async def list_students(
     _api_key: None = Depends(verify_api_key),
     current_user: dict = Depends(require_admin),
@@ -159,7 +160,7 @@ async def list_students(
     return [StudentInfo(id=student["id"], name=student["name"]) for student in students]
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/api/chat", response_model=ChatResponse)
 def chat(
     request: ChatRequest,
     _api_key: None = Depends(verify_api_key),
@@ -186,7 +187,7 @@ def chat(
     )
 
 
-@app.get("/admin/documents")
+@app.get("/api/admin/documents")
 def list_documents(
     _api_key: None = Depends(verify_api_key),
     current_user: dict = Depends(require_admin),
@@ -196,7 +197,7 @@ def list_documents(
     return get_all_doc_meta()
 
 
-@app.post("/admin/documents/upload")
+@app.post("/api/admin/documents/upload")
 def upload_document(
     _api_key: None = Depends(verify_api_key),
     file: UploadFile = File(...),
@@ -243,7 +244,7 @@ def upload_document(
     return doc_meta
 
 
-@app.delete("/admin/documents/{doc_id}")
+@app.delete("/api/admin/documents/{doc_id}")
 def delete_document(
     doc_id: str,
     _api_key: None = Depends(verify_api_key),
@@ -262,3 +263,24 @@ def delete_document(
         os.remove(file_path)
 
     return {"message": "Đã xóa tài liệu", "doc_id": doc_id}
+
+# --- UI Serving logic ---
+# Current file is in student_assistant/backend/app/main.py
+# static folder is at student_assistant/backend/static
+current_dir = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(os.path.dirname(current_dir), "static")
+
+# Mount static files at / (must be after defining API routes)
+if os.path.exists(STATIC_DIR):
+    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+
+
+# Catch-all for SPA (must be the VERY LAST handler)
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    # Try to serve index.html for any route that doesn't start with /api or /uploads
+    if not full_path.startswith("api/") and not full_path.startswith("uploads/"):
+        index_path = os.path.join(STATIC_DIR, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+    raise HTTPException(status_code=404, detail="Not Found")
