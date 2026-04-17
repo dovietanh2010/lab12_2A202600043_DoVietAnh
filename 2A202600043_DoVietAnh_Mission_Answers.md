@@ -206,7 +206,7 @@ Trong phần này, tôi đã tích hợp các yêu cầu production (Docker mult
 
 ### Deployment Information
 - Toàn bộ các file Security nằm trong thư mục `student_assistant/backend/app/production`.
-- **Final Public URL**: https://lab12-2a202600043-dovietanh.onrender.com (Bản production đầy đủ tính năng)
+- **Final Public URL**: https://lab12-2a202600043-dovietanh.onrender.com
 - **Platform**: Render
 - **Snapshot**: pics/deploy_part6.png và pics/log_deploy_part6.png
 - **Infrastructure**: Docker Compose (Nginx + Backend + Frontend + Redis).
