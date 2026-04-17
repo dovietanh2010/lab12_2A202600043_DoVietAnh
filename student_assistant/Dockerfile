@@ -29,7 +29,10 @@ COPY --from=backend-builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
 # Copy code Backend
-COPY backend ./backend
+# Phải sửa trong file Dockerfile thành:
+COPY student_assistant/requirements.txt .
+COPY student_assistant/backend ./backend
+
 
 # Copy Frontend đã build vào đúng thư mục tĩnh của Backend
 COPY --from=frontend-builder /build-frontend/out ./backend/static
