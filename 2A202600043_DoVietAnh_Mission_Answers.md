@@ -24,7 +24,7 @@
 ## Part 2: Docker
 
 ### Exercise 2.1: Dockerfile questions
-1. **Base image là gì?**: image nền chứa sẵn Python 3.11 để build container`python:3.11` (Bản đầy đủ, dung lượng lớn).
+1. **Base image là gì?**: image nền chứa sẵn Python 3.11 để build container `python:3.11` (Bản đầy đủ, dung lượng lớn).
 2. **Working directory là gì?**: `/app` (Thư mục làm việc chính bên trong container).
 3. **Tại sao COPY requirements.txt trước?**: Để tận dụng **Docker Layer Caching**. Nếu file requirements không đổi, Docker sẽ dùng lại layer đã cài đặt dependencies, giúp build nhanh hơn rất nhiều ở các lần sau.
 4. **CMD vs ENTRYPOINT khác nhau thế nào?**:
@@ -49,8 +49,10 @@
 ## Part 3: Cloud Deployment
 
 ### Exercise 3.1: Cloud Deployment (Railway & Render)
-- **Public URL (Railway)**: (điền sau khi deploy)
-- **Public URL (Render)**: (điền sau khi deploy)
+- **Public URL (Railway)**: https://lab12part3-production.up.railway.app/
+- **Snapshot**: pics/deploy_part3.png
+- **Public URL (Render)**: https://ai-agent-1oa6.onrender.com/
+- **Snapshot**: pics/deploy_part3_2.png
 - **Platform**: Railway / Render
 - **Cách thực hiện**:
     *   **Railway**: Dùng Railway CLI (`railway up`) để deploy nhanh từ terminal.
@@ -67,17 +69,60 @@ Ghi chú: Hướng dẫn deploy chi tiết đã được viết tại `student_a
 
 ## Part 4: API Security
 
-### Exercise 4.1: API Key authentication
-1. **API key được check ở đâu?**: Trong hàm `verify_api_key`, được sử dụng như một **FastAPI Dependency**. Nó kiểm tra sự tồn tại và tính hợp lệ của header `X-API-Key`.
-2. **Điều gì xảy ra nếu sai key?**: 
-    * Nếu thiếu header: Trả về `401 Unauthorized`.
-    * Nếu key không khớp: Trả về `401 Unauthorized` (API key không hợp lệ).
-3. **Làm sao rotate key?**: Chỉ cần thay đổi giá trị của biến môi trường `AGENT_API_KEY` trong file `.env` hoặc trên Dashboard của Cloud Platform (Railway/Render), sau đó restart service.
+### Exercise 4.1-4.3: Test results
 
-### Exercise 4.3: Rate limiting
-1. **Algorithm nào được dùng?**: Sliding window bằng Redis ZSET (xóa timestamp cũ trong 60s, thêm timestamp mới, đếm số lượng trong cửa sổ).
-2. **Limit là bao nhiêu requests/minute?**: theo env `RATE_LIMIT_PER_MINUTE` (mặc định 10 requests/phút/user).
-3. **Vượt limit thì sao?**: trả về `429 Too Many Requests`.
+#### 1. Kiểm tra API Key (X-API-Key Authentication)
+Hệ thống yêu cầu header `X-API-Key` cho các endpoint nhạy cảm (như `/api/chat`, `/api/admin/*`).
+- **Output**: `{"detail": "Missing API key. Include header: X-API-Key: <your-key>"}`
+- **Output**: `{"detail": "Invalid API key."}`
+
+
+#### 2. Kiểm tra JWT Authentication (Token-based Session)
+Người dùng đăng nhập để lấy Session Token.
+- **Login thành công**: `HTTP/1.1 200 OK` -> `{"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiJzdHVkZW50Iiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzY0NDMxNzUsImV4cCI6MTc3NjQ0Njc3NX0.-ekn2EkPPSS_fF2e4wY5xae8Cc6TvVbSz79FES36nr0",
+"token_type": "bearer",
+"expires_in_minutes": 60,
+"hint": "Include in header: Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+}`
+- **Sử dụng Token**: Gửi header `Authorization: Bearer <token>` để xác thực danh tính cho các tác vụ tiếp theo (Chat, Quản lý tài liệu).
+
+#### 3. Kiểm tra Rate Limiting (Anti-spam)
+Ngăn chặn người dùng gửi quá nhiều yêu cầu trong thời gian ngắn.
+- **Output**: `INFO:cost_guard:Usage: user=student req=1 cost=$0.0000/1.0
+INFO:     127.0.0.1:54347 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=2 cost=$0.0000/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=3 cost=$0.0001/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=4 cost=$0.0001/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=5 cost=$0.0001/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=6 cost=$0.0001/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=7 cost=$0.0001/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=8 cost=$0.0002/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=9 cost=$0.0002/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:cost_guard:Usage: user=student req=10 cost=$0.0002/1.0
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:56370 - "POST /ask HTTP/1.1" 429 Too Many Requests`
+- **Dưới ngưỡng giới hạn**: Hoạt động bình thường.
+- **Vượt ngưỡng (Request thứ 11/phút)**: `HTTP/1.1 429 Too Many Requests` -> `{"detail": "Rate limit exceeded. Please try again later."}`.
+
+---
 
 ### Exercise 4.4: Cost guard
 **Logic implement:**
@@ -130,5 +175,7 @@ Trong phần này, tôi đã tích hợp các yêu cầu production (Docker mult
    - Hệ thống logging cấu trúc JSON giúp dễ dàng theo dõi lỗi và hiệu năng trên các dashboard quản lý tập trung.
 
 ### Deployment Information
-- **URL**: (điền sau khi bạn deploy Railway/Render)
+- **Public URL**: https://lab12-2a202600043-dovietanh.onrender.com
+- **Platform**: Render
+- **Snapshot**: pics/deploy_part6.png và pics/log_deploy_part6.png
 - **Infrastructure**: Docker Compose (Nginx + Backend + Frontend + Redis).

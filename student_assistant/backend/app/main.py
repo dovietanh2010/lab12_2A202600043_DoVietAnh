@@ -131,7 +131,15 @@ def login(
     user = authenticate(request.username, request.password)
     if not user:
         raise HTTPException(status_code=401, detail="Sai tên đăng nhập hoặc mật khẩu")
-    return {**user, "token": create_session(user)}
+    
+    try:
+        token = create_session(user)
+        return {**user, "token": token}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Lỗi kết nối Redis: {str(e)}. Vui lòng kiểm tra cấu hình REDIS_URL trên Render."
+        )
 
 
 @app.get("/api/health")
