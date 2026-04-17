@@ -1,0 +1,47 @@
+# ============================================================
+# render.yaml — Unified Infrastructure for Student Assistant
+# ============================================================
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # ──────────────────────────────────────
+  # 1. Unified Web Service (Frontend + Backend)
+  # ──────────────────────────────────────
+  - type: web
+    name: student-assistant-unified
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: student_assistant/Dockerfile
+    region: singapore
+    plan: free
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8000
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sa-redis-cache
+          property: connectionString
+      # Key for API protection (Part 4)
+      - key: AGENT_API_KEY
+        generateValue: true
+      # AI Keys (Must set manually on Dashboard for real AI)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: JINA_API_KEY
+        sync: false
+
+  # ──────────────────────────────────────
+  # 2. Redis Cache Service
+  # ──────────────────────────────────────
+  - type: redis
+    name: sa-redis-cache
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all traffic (for lab demo)
