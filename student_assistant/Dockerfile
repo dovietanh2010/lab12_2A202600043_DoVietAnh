@@ -35,6 +35,7 @@ COPY student_assistant/backend ./backend
 
 
 # Copy Frontend đã build vào đúng thư mục tĩnh của Backend
+COPY student_assistant/frontend ./frontend
 COPY --from=frontend-builder /build-frontend/out ./backend/static
 
 EXPOSE 8000
